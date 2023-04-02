@@ -1,3 +1,7 @@
+student_list = []
+lecturer_list = []
+
+
 class Student:
     def __init__(self, name, surname, gender):
         self.name = name
@@ -6,6 +10,7 @@ class Student:
         self.finished_courses = []
         self.courses_in_progress = []
         self.grades = {}
+        student_list.append(self)
 
     def __str__(self):
         res = f'Имя:{self.name}\n' \
@@ -14,6 +19,12 @@ class Student:
               f'Курсы в процессе изучения: {self.courses_in_progress}\n' \
               f'Завершенные курсы: {self.finished_courses}\n'
         return res
+
+    def __lt__(self, other):
+        if not isinstance(other, Student):
+            print('Not a Chracter')
+            return
+        return self.average_rate() < other.average_rate()
 
     def rate_lecturer(self, lecturer, course, grade):
         if isinstance(lecturer, Lecturer) and course in (lecturer.courses_attached and self.courses_in_progress):
@@ -25,8 +36,8 @@ class Student:
             return 'Ошибка'
 
     def average_rate(self):
-        score = [sum([sum(grade) for course, grade in self.grades.items()])][0]
-        count_grades = [sum([len(v) for k, v in self.grades.items()])][0]
+        score = [sum(grade) for course, grade in self.grades.items()][0]
+        count_grades = [len(v) for k, v in self.grades.items()][0]
         average = (score/count_grades)
         return average
 
@@ -42,10 +53,11 @@ class Lecturer(Mentor):
     def __init__(self, name, surname):
         super().__init__(name, surname)
         self.grades = {}
+        lecturer_list.append(self)
 
     def average_rate(self):
-        score = [sum([sum(grade) for course, grade in self.grades.items()])][0]
-        count_grades = [sum([len(v) for k, v in self.grades.items()])][0]
+        score = [sum(grade) for course, grade in self.grades.items()][0]
+        count_grades = [len(v) for k, v in self.grades.items()][0]
         average = (score/count_grades)
         return average
 
@@ -54,6 +66,12 @@ class Lecturer(Mentor):
               f'Фамилия: {self.surname}\n' \
               f'Средняя оценка за лекции: {self.average_rate()}\n'
         return res
+
+    def __lt__(self, other):
+        if not isinstance(other, Lecturer):
+            print('Not a Chracter')
+            return
+        return self.average_rate() < other.average_rate()
 
 
 class Reviewer(Mentor):
@@ -72,31 +90,87 @@ class Reviewer(Mentor):
         return res
 
 
-best_student = Student('Ученик', 'Иванов', 'm')
-best_student.courses_in_progress += ['Python']
-best_student.courses_in_progress += ['Java']
-best_student.finished_courses += ['Введение в программирование']
+def average_all_rates(person_list, course):
+    total_score = 0
+    total_count = 0
+    for student in person_list:
+        for k, v in student.__dict__['grades'].items():
+            if k == course:
+                score = sum(v)
+                count_grades = len(v)
+                total_score += score
+                total_count += count_grades
+    average = round(total_score/total_count, 2)
+    return average
 
-cool_reviewer = Reviewer('Иван', 'Проверяющий')
-cool_reviewer.courses_attached += ['Python']
-cool_reviewer.rate_hw(best_student, 'Java', 7)
-cool_reviewer.rate_hw(best_student, 'Java', 8)
-cool_reviewer.rate_hw(best_student, 'Python', 10)
-cool_reviewer.rate_hw(best_student, 'Python', 7)
-cool_reviewer.rate_hw(best_student, 'Python', 6)
+
+first_student = Student('Максим', 'Попов', 'm')
+first_student.courses_in_progress += ['Python']
+first_student.finished_courses += ['Введение в программирование']
+
+third_student = Student('Илья', 'Трубачев', 'm')
+third_student.courses_in_progress += ['Python']
+third_student.finished_courses += ['Введение в программирование']
+
+second_student = Student('Кристина', 'Стрельцова', 'w')
+second_student.courses_in_progress += ['Java']
+second_student.finished_courses += ['Введение в программирование']
+
+multi_reviewer = Reviewer('Евгений', 'Михайлов')
+multi_reviewer.courses_attached += ['Python']
+multi_reviewer.courses_attached += ['Java']
+
+multi_reviewer.rate_hw(first_student, 'Python', 10)
+multi_reviewer.rate_hw(first_student, 'Python', 3)
+multi_reviewer.rate_hw(first_student, 'Python', 6)
+
+multi_reviewer.rate_hw(second_student, 'Java', 10)
+multi_reviewer.rate_hw(second_student, 'Java', 7)
+multi_reviewer.rate_hw(second_student, 'Java', 4)
+multi_reviewer.rate_hw(second_student, 'Java', 9)
+
+multi_reviewer.rate_hw(third_student, 'Python', 8)
+multi_reviewer.rate_hw(third_student, 'Python', 4)
+multi_reviewer.rate_hw(third_student, 'Python', 9)
+multi_reviewer.rate_hw(third_student, 'Python', 7)
+
+first_lecturer = Lecturer('Андрей', 'Кузнецов')
+first_lecturer.courses_attached += ['Python']
+
+second_lecturer = Lecturer('Светлана', 'Белова')
+second_lecturer.courses_attached += ['Java']
+
+third_lecturer = Lecturer('Елизавета', 'Севастьянова')
+third_lecturer.courses_attached += ['Python']
+
+first_student.rate_lecturer(first_lecturer, 'Python', 10)
+third_student.rate_lecturer(first_lecturer, 'Python', 9)
+first_student.rate_lecturer(first_lecturer, 'Python', 3)
+
+second_student.rate_lecturer(second_lecturer, 'Java', 9)
+second_student.rate_lecturer(second_lecturer, 'Java', 10)
+second_student.rate_lecturer(second_lecturer, 'Java', 7)
+second_student.rate_lecturer(second_lecturer, 'Java', 5)
+
+first_student.rate_lecturer(third_lecturer, 'Python', 8)
+third_student.rate_lecturer(third_lecturer, 'Python', 4)
+first_student.rate_lecturer(third_lecturer, 'Python', 9)
+third_student.rate_lecturer(third_lecturer, 'Python', 8)
+first_student.rate_lecturer(third_lecturer, 'Python', 10)
 
 
+print(multi_reviewer)
 
-cool_lecturer = Lecturer('Учитель', 'Петров')
-cool_lecturer.courses_attached += ['Python']
+print(first_lecturer)
+print(second_lecturer)
+print(third_lecturer)
 
-best_student.rate_lecturer(cool_lecturer, 'Python', 10)
-best_student.rate_lecturer(cool_lecturer, 'Python', 9)
-best_student.rate_lecturer(cool_lecturer, 'Python', 3)
+print(first_student)
+print(second_student)
+print(third_student)
 
-best_student.rate_lecturer(cool_lecturer, 'Java', 7)
-best_student.rate_lecturer(cool_lecturer, 'Java', 8)
+print(first_student > second_student)
+print(second_lecturer > first_lecturer)
 
-print(cool_reviewer)
-print(cool_lecturer)
-print(best_student)
+print(average_all_rates(student_list, 'Python'))
+print(average_all_rates(lecturer_list, 'Python'))
